@@ -26,6 +26,7 @@ async function run() {
     await client.connect();
     const menuCollection = client.db("bistroDb").collection("menu"); // Example collection
     const reviewCollection = client.db("bistroDb").collection("reviews");
+    const cartCollection = client.db("bistroDb").collection("carts");
 
     console.log("Connected to MongoDB successfully!");
 
@@ -38,6 +39,15 @@ async function run() {
       const result = await reviewCollection.find().toArray();
       res.send(result);
     });
+
+    // carts collection
+    app.post("/carts", async (req, res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    });
+
+    
   } catch (error) {
     console.error("MongoDB connection error:", error);
   }

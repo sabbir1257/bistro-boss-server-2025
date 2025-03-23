@@ -18,8 +18,6 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection URI
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hb5w7.mongodb.net/?retryWrites=true&w=majority`;
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5v9zz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 

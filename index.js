@@ -1,7 +1,6 @@
-
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -18,10 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection URI
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hb5w7.mongodb.net/?retryWrites=true&w=majority`;
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5v9zz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 
 // MongoClient configuration (🔥 Removed unsupported options)
 const client = new MongoClient(uri, {
@@ -66,30 +62,38 @@ async function run() {
     });
 
     // Get user's cart items
-    app.get("/carts", async (req, res) => {
-      try {
-        const email = req.query.email;
-        if (!email) return res.status(400).json({ error: "Email is required" });
+    // app.get("/carts", async (req, res) => {
+    //   try {
+    //     const email = req.query.email;
+    //     if (!email) return res.status(400).json({ error: "Email is required" });
 
-        const carts = await cartCollection.find({ email }).toArray();
-        res.status(200).json(carts);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch carts" });
-      }
-    });
+    //     const carts = await cartCollection.find({ email }).toArray();
+    //     res.status(200).json(carts);
+    //   } catch (err) {
+    //     res.status(500).json({ error: "Failed to fetch carts" });
+    //   }
+    // });
+    app.get('/carts',async(req,res) =>{
+      const result = await cartCollection.find().toArray();
+      res.send(result);
+    })
 
     // Add a cart item
     app.post("/carts", async (req, res) => {
-      try {
-        const cartItem = req.body;
-        if (!cartItem) return res.status(400).json({ error: "Cart item is required" });
-
-        const result = await cartCollection.insertOne(cartItem);
-        res.status(201).json(result);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to add cart item" });
-      }
+      
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
     });
+
+    app.delete("/carts/:id", async (req, res) => {
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
+
 
   } catch (error) {
     console.error("❌ MongoDB connection error:", error);

@@ -42,8 +42,40 @@ async function run() {
 
     // ✅ API Routes
 
-    // users reletad api
-    app.post("/users", async (req, res) => {
+
+    // Get all menu items
+    app.get("/menu", async (req, res) => {
+        const menu = await menuCollection.find().toArray();
+        res.status(200).json(menu);
+    });
+
+    // Get all reviews
+    app.get("/reviews", async (req, res) => {
+        const reviews = await reviewCollection.find().toArray();
+        res.status(200).json(reviews);
+    });
+
+    // users related api
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+
+    app.get("/carts", async (req, res) => {
+      const result = await cartCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Add a cart item
+    app.post("/carts", async (req, res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    });
+
+     // users reletad api
+     app.post("/users", async (req, res) => {
       const user = req.body;
       // insert email if user doesnt exists 
       // you can do this many ways (1. email unique , 2. upsert, 3. simple checking)
@@ -54,50 +86,6 @@ async function run() {
       }
 
       const result = await userCollection.insertOne(user);
-      res.send(result);
-    });
-
-    // Get all menu items
-    app.get("/menu", async (req, res) => {
-      try {
-        const menu = await menuCollection.find().toArray();
-        res.status(200).json(menu);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch menu" });
-      }
-    });
-
-    // Get all reviews
-    app.get("/reviews", async (req, res) => {
-      try {
-        const reviews = await reviewCollection.find().toArray();
-        res.status(200).json(reviews);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch reviews" });
-      }
-    });
-
-    // Get user's cart items
-    // app.get("/carts", async (req, res) => {
-    //   try {
-    //     const email = req.query.email;
-    //     if (!email) return res.status(400).json({ error: "Email is required" });
-
-    //     const carts = await cartCollection.find({ email }).toArray();
-    //     res.status(200).json(carts);
-    //   } catch (err) {
-    //     res.status(500).json({ error: "Failed to fetch carts" });
-    //   }
-    // });
-    app.get("/carts", async (req, res) => {
-      const result = await cartCollection.find().toArray();
-      res.send(result);
-    });
-
-    // Add a cart item
-    app.post("/carts", async (req, res) => {
-      const cartItem = req.body;
-      const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
 

@@ -38,8 +38,16 @@ async function run() {
     const menuCollection = db.collection("menu");
     const reviewCollection = db.collection("reviews");
     const cartCollection = db.collection("carts");
+    const userCollection = db.collection("users");
 
     // ✅ API Routes
+
+    // users reletad api
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     // Get all menu items
     app.get("/menu", async (req, res) => {
@@ -73,28 +81,24 @@ async function run() {
     //     res.status(500).json({ error: "Failed to fetch carts" });
     //   }
     // });
-    app.get('/carts',async(req,res) =>{
+    app.get("/carts", async (req, res) => {
       const result = await cartCollection.find().toArray();
       res.send(result);
-    })
+    });
 
     // Add a cart item
     app.post("/carts", async (req, res) => {
-      
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
 
     app.delete("/carts/:id", async (req, res) => {
-
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
-
-
   } catch (error) {
     console.error("❌ MongoDB connection error:", error);
     process.exit(1);

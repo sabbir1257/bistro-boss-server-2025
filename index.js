@@ -1,7 +1,6 @@
-
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -19,7 +18,6 @@ app.use(express.json());
 
 // MongoDB Connection URI
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5v9zz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 
 // MongoClient configuration (🔥 Removed unsupported options)
 const client = new MongoClient(uri, {
@@ -40,54 +38,82 @@ async function run() {
     const menuCollection = db.collection("menu");
     const reviewCollection = db.collection("reviews");
     const cartCollection = db.collection("carts");
+    const userCollection = db.collection("users");
 
     // ✅ API Routes
 
+
     // Get all menu items
     app.get("/menu", async (req, res) => {
-      try {
         const menu = await menuCollection.find().toArray();
         res.status(200).json(menu);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch menu" });
-      }
     });
 
     // Get all reviews
     app.get("/reviews", async (req, res) => {
-      try {
         const reviews = await reviewCollection.find().toArray();
         res.status(200).json(reviews);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch reviews" });
-      }
     });
 
-    // Get user's cart items
-    app.get("/carts", async (req, res) => {
-      try {
-        const email = req.query.email;
-        if (!email) return res.status(400).json({ error: "Email is required" });
+    // users related api
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
 
-        const carts = await cartCollection.find({ email }).toArray();
-        res.status(200).json(carts);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch carts" });
-      }
+
+    app.get("/carts", async (req, res) => {
+      const result = await cartCollection.find().toArray();
+      res.send(result);
     });
 
     // Add a cart item
     app.post("/carts", async (req, res) => {
-      try {
-        const cartItem = req.body;
-        if (!cartItem) return res.status(400).json({ error: "Cart item is required" });
-
-        const result = await cartCollection.insertOne(cartItem);
-        res.status(201).json(result);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to add cart item" });
-      }
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
     });
+
+     // users reletad api
+     app.post("/users", async (req, res) => {
+      const user = req.body;
+      // insert email if user doesnt exists 
+      // you can do this many ways (1. email unique , 2. upsert, 3. simple checking)
+      const query = {email: user.email}
+      const existingUser = await userCollection.findOne(query)
+      if(existingUser){
+        return res.send({message: 'user already exists', insertedId: null})
+      }
+
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.patch('/users/admin:id', async(req, res)=> {
+      const id = -req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    app.delete("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)};
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.delete('/users/:id', async(req, res) => {
+      const id = req.params.id;
+      const query ={ _id: new ObjectId(id)};
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    } )
 
   } catch (error) {
     console.error("❌ MongoDB connection error:", error);

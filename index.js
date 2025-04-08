@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
@@ -42,25 +43,23 @@ async function run() {
 
     // ✅ API Routes
 
-
     // Get all menu items
     app.get("/menu", async (req, res) => {
-        const menu = await menuCollection.find().toArray();
-        res.status(200).json(menu);
+      const menu = await menuCollection.find().toArray();
+      res.status(200).json(menu);
     });
 
     // Get all reviews
     app.get("/reviews", async (req, res) => {
-        const reviews = await reviewCollection.find().toArray();
-        res.status(200).json(reviews);
+      const reviews = await reviewCollection.find().toArray();
+      res.status(200).json(reviews);
     });
 
     // users related api
-    app.get('/users', async(req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
-
 
     app.get("/carts", async (req, res) => {
       const result = await cartCollection.find().toArray();
@@ -74,47 +73,46 @@ async function run() {
       res.send(result);
     });
 
-     // users reletad api
-     app.post("/users", async (req, res) => {
+    // users reletad api
+    app.post("/users", async (req, res) => {
       const user = req.body;
-      // insert email if user doesnt exists 
+      // insert email if user doesnt exists
       // you can do this many ways (1. email unique , 2. upsert, 3. simple checking)
-      const query = {email: user.email}
-      const existingUser = await userCollection.findOne(query)
-      if(existingUser){
-        return res.send({message: 'user already exists', insertedId: null})
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null });
       }
 
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
 
-    app.patch('/users/admin:id', async(req, res)=> {
-      const id = -req.params.id;
-      const filter = {_id: new ObjectId(id)};
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
-          role: 'admin'
-        }
-      }
+          role: "admin",
+        },
+      };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
 
-    app.delete('/users/:id', async(req, res) => {
+    app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
-      const query ={ _id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await userCollection.deleteOne(query);
       res.send(result);
-    } )
-
+    });
   } catch (error) {
     console.error("❌ MongoDB connection error:", error);
     process.exit(1);

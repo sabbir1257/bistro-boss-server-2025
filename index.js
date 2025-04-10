@@ -41,14 +41,15 @@ async function run() {
     const cartCollection = db.collection("carts");
     const userCollection = db.collection("users");
 
-    // jwt related api
-    app.post("/jwt", async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user.process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
-      });
-      res.send({ token });
-    });
+    // middlewares
+    const varifyToken = (req, res, next) => {
+      console.log("inside verify token", req.headers);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "forbidden access" });
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      // next();
+    };
 
     // ✅ API Routes
 
@@ -65,7 +66,7 @@ async function run() {
     });
 
     // users related api
-    app.get("/users", async (req, res) => {
+    app.get("/users", varifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -107,6 +108,15 @@ async function run() {
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
+    });
+
+    // jwt related api
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
     });
 
     app.delete("/carts/:id", async (req, res) => {
